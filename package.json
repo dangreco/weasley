@@ -1,0 +1,33 @@
+{
+  "name": "weasley",
+  "version": "1.0.0",
+  "description": "Home Assistant card that shows the whereabouts your HA memebers via device tracker -- Like the Weasley clock.",
+  "main": "dist/weasley.js",
+  "repository": "https://github.com/dangreco/weasley",
+  "author": "Dan Greco",
+  "license": "MIT",
+  "devDependencies": {
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",
+    "@types/lodash": "^4.14.170",
+    "react-refresh": "^0.10.0",
+    "react-refresh-typescript": "^2.0.1",
+    "ts-loader": "^9.2.2",
+    "type-fest": "^1.2.0",
+    "typescript": "^4.3.2",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0",
+    "webpack-dev-server": "^3.11.2"
+  },
+  "scripts": {
+    "build": "npx webpack --config webpack.config.prod.js",
+    "watch": "npx webpack --watch --config webpack.config.dev.js",
+    "start": "npx webpack serve --open --config webpack.config.dev.js --host 0.0.0.0"
+  },
+  "dependencies": {
+    "dayjs": "^1.10.5",
+    "framer-motion": "^4.1.17",
+    "home-assistant-js-websocket": "^5.10.0",
+    "lodash": "^4.17.21",
+    "preact": "^10.5.13"
+  }
+}

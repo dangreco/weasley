@@ -1,0 +1,376 @@
+/**
+ * 
+ * Types from https://github.com/custom-cards/custom-card-helpers
+ * Thank y'all <3
+ * 
+ */
+
+import {
+    HassEntities,
+    HassConfig,
+    Auth,
+    Connection,
+    MessageBase,
+    HassServices
+} from "home-assistant-js-websocket";
+
+export interface HASSDomEvent<T> extends Event {
+    detail: T;
+}
+
+export type HapticType =
+    | "success"
+    | "warning"
+    | "failure"
+    | "light"
+    | "medium"
+    | "heavy"
+    | "selection";
+
+export interface ToggleMenuActionConfig extends BaseActionConfig {
+    action: "toggle-menu";
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface ToggleActionConfig extends BaseActionConfig {
+    action: "toggle";
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface CallServiceActionConfig extends BaseActionConfig {
+    action: "call-service";
+    service: string;
+    service_data?: {
+        entity_id?: string | [string];
+        [key: string]: any;
+    };
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface NavigateActionConfig extends BaseActionConfig {
+    action: "navigate";
+    navigation_path: string;
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface UrlActionConfig extends BaseActionConfig {
+    action: "url";
+    url_path: string;
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface MoreInfoActionConfig extends BaseActionConfig {
+    action: "more-info";
+    entity?: string;
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface NoActionConfig extends BaseActionConfig {
+    action: "none";
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface CustomActionConfig extends BaseActionConfig {
+    action: "fire-dom-event";
+    repeat?: number;
+    haptic?: HapticType;
+}
+
+export interface BaseActionConfig {
+    confirmation?: ConfirmationRestrictionConfig;
+}
+
+export interface ConfirmationRestrictionConfig {
+    text?: string;
+    exemptions?: RestrictionConfig[];
+}
+
+export interface RestrictionConfig {
+    user: string;
+}
+
+export type ActionConfig =
+    | ToggleActionConfig
+    | CallServiceActionConfig
+    | NavigateActionConfig
+    | UrlActionConfig
+    | MoreInfoActionConfig
+    | NoActionConfig
+    | CustomActionConfig
+    | ToggleMenuActionConfig;
+
+export interface Window {
+    // Custom panel entry point url
+    customPanelJS: string;
+    ShadyCSS: {
+        nativeCss: boolean;
+        nativeShadow: boolean;
+        prepareTemplate(templateElement: any, elementName: any, elementExtension: any): any;
+        styleElement(element: any): any;
+        styleSubtree(element: any, overrideProperties: any): any;
+        styleDocument(overrideProperties: any): any;
+        getComputedStyleValue(element: any, propertyName: any): any;
+    };
+}
+
+declare global {
+    // for fire event
+    interface HASSDomEvents {
+        "value-changed": {
+            value: unknown;
+        };
+        "config-changed": {
+            config: any;
+        };
+        "hass-more-info": {
+            entityId: string | null;
+        };
+        "ll-rebuild": {};
+        "ll-custom": {};
+        "location-changed": {
+            replace: boolean;
+        };
+        "show-dialog": {};
+        undefined: any;
+        "action": {
+            action: string;
+        }
+    }
+}
+
+type ValidHassDomEvent = keyof HASSDomEvents;
+
+export type LocalizeFunc = (key: string, ...args: any[]) => string;
+
+export interface Credential {
+    auth_provider_type: string;
+    auth_provider_id: string;
+}
+
+export interface MFAModule {
+    id: string;
+    name: string;
+    enabled: boolean;
+}
+
+export interface CurrentUser {
+    id: string;
+    is_owner: boolean;
+    is_admin: boolean;
+    name: string;
+    credentials: Credential[];
+    mfa_modules: MFAModule[];
+}
+
+export interface Theme {
+    // Incomplete
+    "primary-color": string;
+    "text-primary-color": string;
+    "accent-color": string;
+}
+
+export interface Themes {
+    default_theme: string;
+    themes: { [key: string]: Theme };
+}
+
+export interface Panel {
+    component_name: string;
+    config: { [key: string]: any } | null;
+    icon: string | null;
+    title: string | null;
+    url_path: string;
+}
+
+export interface Panels {
+    [name: string]: Panel;
+}
+
+export interface Resources {
+    [language: string]: { [key: string]: string };
+}
+
+export interface Translation {
+    nativeName: string;
+    isRTL: boolean;
+    fingerprints: { [fragment: string]: string };
+}
+
+export interface HomeAssistant {
+    auth: Auth;
+    connection: Connection;
+    connected: boolean;
+    states: HassEntities;
+    services: HassServices;
+    config: HassConfig;
+    themes: Themes;
+    selectedTheme?: string | null;
+    panels: Panels;
+    panelUrl: string;
+
+    // i18n
+    // current effective language, in that order:
+    //   - backend saved user selected lanugage
+    //   - language in local appstorage
+    //   - browser language
+    //   - english (en)
+    language: string;
+    // local stored language, keep that name for backward compability
+    selectedLanguage: string;
+    resources: Resources;
+    localize: LocalizeFunc;
+    translationMetadata: {
+        fragments: string[];
+        translations: {
+            [lang: string]: Translation;
+        };
+    };
+
+    dockedSidebar: boolean;
+    moreInfoEntityId: string;
+    user: CurrentUser;
+    callService: (
+        domain: string,
+        service: string,
+        serviceData?: { [key: string]: any }
+    ) => Promise<void>;
+    callApi: <T>(
+        method: "GET" | "POST" | "PUT" | "DELETE",
+        path: string,
+        parameters?: { [key: string]: any }
+    ) => Promise<T>;
+    fetchWithAuth: (
+        path: string,
+        init?: { [key: string]: any }
+    ) => Promise<Response>;
+    sendWS: (msg: MessageBase) => Promise<void>;
+    callWS: <T>(msg: MessageBase) => Promise<T>;
+}
+
+export interface LovelaceCardConfig {
+    index?: number;
+    view_index?: number;
+    type: string;
+    [key: string]: any;
+}
+
+export interface LovelaceCard extends HTMLElement {
+    hass?: HomeAssistant;
+    isPanel?: boolean;
+    editMode?: boolean;
+    getCardSize(): number | Promise<number>;
+    setConfig(config: LovelaceCardConfig): void;
+}
+
+export interface LovelaceCardEditor extends HTMLElement {
+    hass?: HomeAssistant;
+    lovelace?: LovelaceConfig;
+    setConfig(config: LovelaceCardConfig): void;
+}
+
+export interface LovelaceConfig {
+    title?: string;
+    views: LovelaceViewConfig[];
+    background?: string;
+}
+
+export interface LovelaceViewConfig {
+    index?: number;
+    title?: string;
+    badges?: Array<string | LovelaceBadgeConfig>;
+    cards?: LovelaceCardConfig[];
+    path?: string;
+    icon?: string;
+    theme?: string;
+    panel?: boolean;
+    background?: string;
+    visible?: boolean | ShowViewConfig[];
+}
+
+export interface ShowViewConfig {
+    user?: string;
+}
+
+export interface LovelaceBadgeConfig {
+    type?: string;
+    [key: string]: any;
+}
+
+export interface ActionHandlerDetail {
+    action: string;
+}
+
+export type ActionHandlerEvent = HASSDomEvent<ActionHandlerDetail>;
+
+export interface ActionHandlerOptions {
+    hasHold?: boolean;
+    hasDoubleClick?: boolean;
+}
+
+export interface EntitiesCardEntityConfig extends EntityConfig {
+    type?: string;
+    secondary_info?:
+    | "entity-id"
+    | "last-changed"
+    | "last-triggered"
+    | "last-updated"
+    | "position"
+    | "tilt-position"
+    | "brightness";
+    action_name?: string;
+    service?: string;
+    service_data?: Record<string, unknown>;
+    url?: string;
+    tap_action?: ActionConfig;
+    hold_action?: ActionConfig;
+    double_tap_action?: ActionConfig;
+    state_color?: boolean;
+    show_name?: boolean;
+    show_icon?: boolean;
+}
+
+export interface EntityConfig {
+    entity: string;
+    type?: string;
+    name?: string;
+    icon?: string;
+    image?: string;
+}
+
+export interface LovelaceElementConfigBase {
+    type: string;
+    style: Record<string, string>;
+}
+
+
+/**
+ *
+ *
+ *  Weasley Types
+ *  
+ * 
+ *
+ */
+
+export interface WeasleyConfig {
+
+    type: string;
+    entities: string[];
+    groups?: string[];
+    first_name_only?: boolean;
+    misc_group_name?: string;
+
+}
+
+export enum Severity {
+    Gentle,
+    Low,
+    High
+}
